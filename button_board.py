@@ -1,22 +1,36 @@
 from pydub import AudioSegment
 from pydub.playback import play
-import neopixel
-import board
+try:
+    import board
+    import neopixel
+except NotImplementedError:
+    print("running in emulation mode")
+    import neopixel_emu as neopixel
+    import mockboard as board
+import time
 import asyncio
+import threading
 
 
 class ButtonBoard:
     def __init__(self):
         self.running = True
-        self.leds = neopixel.NeoPixel(board.D18, 25)
+
+        # if its not running on a pi this will emulate what the NeoPixel library does
+        # try:
+        self.leds = neopixel.NeoPixel(board.D18, 24)
+        # except NameError:
+            # self.leds = [(0, 0, 0) for x in range(29)]
         self.speaker = self.Speakers()
+
+        # Creating the buttons
         self.buttons = []
-        self.loop = asyncio.get_event_loop()
-        self.loop.run_until_complete(self.detect_button_presses())
-        for i in range(5):
+        for i in range(4):
             self.buttons.append([])
-            for j in range(5):
-                self.buttons[i].append(self.Button(self, i*5+j))
+            for j in range(6):
+                self.buttons[i].append(self.Button(self, i*6 + j))
+        t1 = threading.Thread(target=self.thread_loop, args=(), daemon=True)
+        t1.start()
 
     class Button:
         def __init__(self, button_board, led_pos):
@@ -25,13 +39,16 @@ class ButtonBoard:
             self.active = False
             self.pressed = False
 
+        # Lights up the button to the desired RGB colour
         def light_up(self, color=(255, 255, 255)):
             self.button_board.leds[self.led_pos] = color
 
+        # Activating the button by turning it to a green colour
         def activate(self):
             self.light_up((0, 255, 0))
             self.active = True
 
+        # Deactivates the button by turning the led off
         def deactivate(self):
             self.light_up((0, 0, 0))
             self.active = False
@@ -40,13 +57,25 @@ class ButtonBoard:
         def __init__(self):
             pass
 
+        # Play an mp3 file that is in the sounds folder
         def play_mp3(self, filename):
-            sound = AudioSegment.from_mp3('sounds/'+filename)
-            play(sound)
+            f = lambda sound: play(sound)
+            sound = AudioSegment.from_mp3('sounds/' + filename)
+            t = threading.Thread(target=f, args=(sound,))
+            t.start()
+            # play(sound)
 
-    async def detect_button_presses(self):
+    # loop for detecting button presses.
+    # TODO: add ability to detect button presses
+    def thread_loop(self):
+        print("its working i guess")
         while self.running:
-            pass
+            print(self.buttons[0][0].pressed)
+            time.sleep(2)
 
+    def colour_all_leds(self, colour=(254, 254, 254)):
+        self.leds.fill(colour)
+        pass
 
-ButtonBoard()
+if __name__ == "__main__":
+    ButtonBoard()
