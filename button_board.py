@@ -10,6 +10,7 @@ except NotImplementedError:
 import time
 import asyncio
 import threading
+import serial
 
 
 class ButtonBoard:
@@ -22,6 +23,7 @@ class ButtonBoard:
         # except NameError:
             # self.leds = [(0, 0, 0) for x in range(29)]
         self.speaker = self.Speakers()
+        self.serial = serial.Serial("COM4", 115200)
 
         # Creating the buttons
         self.buttons = []
@@ -41,7 +43,10 @@ class ButtonBoard:
 
         # Lights up the button to the desired RGB colour
         def light_up(self, color=(255, 255, 255)):
-            self.button_board.leds[self.led_pos] = color
+            r, g, b = color
+            s = f"{self.led_pos}:{r}:{g}:{b}\n".encode()
+            print(s)
+            self.button_board.serial.write(s)
 
         # Activating the button by turning it to a green colour
         def activate(self):

@@ -1,12 +1,12 @@
 #include <Arduino.h>
 #include <Adafruit_NeoPixel.h>
-#define PIN 9
+#define PIN 13
 #define NUMPIXELS 1
-const byte numChars = 15;
+const byte numChars = 16;
 char receivedChars[numChars];
 int incomingByte;
 static byte ndx = 0;
-Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUMPIXELS, PIN, NEO_RGB + NEO_KHZ800);
 void decoder(char* received);
 void light_up_led(int led, int red, int green, int blue);
 void setup() {
@@ -26,33 +26,33 @@ void loop() {
     else{
       ndx = 0;
       decoder(receivedChars);
+      memset(receivedChars, 0, sizeof(receivedChars));
     }
   }
 }
 
 void decoder(char* received) {
-  Serial.println(received);
+  // Serial.println(received);
   char* inputs = strtok(received, ":");
   int values[4];
   for(int i = 0; i<4; i++){
     values[i] = atoi(inputs);
     inputs = strtok(0, ":");
-    Serial.println(values[i]);
+    // Serial.println(values[i]);
   }
   light_up_led(values[0], values[1], values[2], values[3]);
-  Serial.println("Lit");
+  // Serial.println("Lit");
 }
 
 void light_up_led(int led, int red, int green, int blue) {
-  // strip.SetPixelColor(led, RgbColor(red, green, blue));
-  Serial.print("LED: ");
-  Serial.println(led);
-  Serial.print("Red: ");
-  Serial.println(red);
-  Serial.print("Green: ");
-  Serial.println(green);
-  Serial.print("Blue: ");
-  Serial.println(blue);
+  // Serial.print("LED: ");
+  // Serial.println(led);
+  // Serial.print("Red: ");
+  // Serial.println(red);
+  // Serial.print("Green: ");
+  // Serial.println(green);
+  // Serial.print("Blue: ");
+  // Serial.println(blue);
   strip.setPixelColor(led, strip.Color(red, green, blue));
   strip.show();
 }
