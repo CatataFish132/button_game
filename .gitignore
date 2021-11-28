@@ -131,3 +131,4 @@ ffmpeg.exe
 ffplay.exe
 ffprobe.exe
 sounds/
+config.ini
