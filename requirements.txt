@@ -2,3 +2,4 @@ pydub~=0.25.1
 simpleaudio~=1.0.4
 adafruit-circuitpython-neopixel~=6.2.2
 adafruit-blinka~=6.15.0
+pyserial~=3.5

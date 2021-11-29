@@ -21,17 +21,14 @@ class ButtonBoard:
         self.config.read("config.ini")
         # if its not running on a pi this will emulate what the NeoPixel library does
         # try:
-        self.leds = neopixel.NeoPixel(board.D18, 24)
-        # except NameError:
-            # self.leds = [(0, 0, 0) for x in range(29)]
         self.speaker = self.Speakers()
         self.serial = serial.Serial(self.config["serial"]["port"], int(self.config["serial"]["speed"]))
 
         # Creating the buttons
         self.buttons = []
-        for i in range(4):
+        for i in range(int(self.config["board"]["size_y"])):
             self.buttons.append([])
-            for j in range(6):
+            for j in range(int(self.config["board"]["size_x"])):
                 self.buttons[i].append(self.Button(self, i*6 + j))
         t1 = threading.Thread(target=self.thread_loop, args=(), daemon=True)
         t1.start()
@@ -80,8 +77,9 @@ class ButtonBoard:
             time.sleep(2)
 
     def colour_all_leds(self, colour=(254, 254, 254)):
-        self.leds.fill(colour)
-        pass
+        for button_row in self.buttons:
+            for button in button_row:
+                button.light_up(colour)
 
 if __name__ == "__main__":
     ButtonBoard()
