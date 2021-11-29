@@ -11,19 +11,21 @@ import time
 import asyncio
 import threading
 import serial
+import configparser
 
 
 class ButtonBoard:
     def __init__(self):
         self.running = True
-
+        self.config = configparser.ConfigParser()
+        self.config.read("config.ini")
         # if its not running on a pi this will emulate what the NeoPixel library does
         # try:
         self.leds = neopixel.NeoPixel(board.D18, 24)
         # except NameError:
             # self.leds = [(0, 0, 0) for x in range(29)]
         self.speaker = self.Speakers()
-        self.serial = serial.Serial("COM4", 115200)
+        self.serial = serial.Serial(self.config["serial"]["port"], int(self.config["serial"]["speed"]))
 
         # Creating the buttons
         self.buttons = []
@@ -75,7 +77,6 @@ class ButtonBoard:
     def thread_loop(self):
         print("its working i guess")
         while self.running:
-            print(self.buttons[0][0].pressed)
             time.sleep(2)
 
     def colour_all_leds(self, colour=(254, 254, 254)):
