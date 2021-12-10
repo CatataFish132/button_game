@@ -23,41 +23,40 @@ class Game:
     async def start(self):
         # don't listen to the IDE this has to be here
         self.loop = asyncio.get_event_loop()
-        self.loop.run_until_complete(await self.main_menu())
+        self.loop.run_until_complete(await self.on_the_beat())
 
     async def game_loop(self, difficulty):
         pass
 
-    async def main_menu(self):
+    async def on_the_beat(self):
+        self.board.colour_all_leds((0,0,0))
         difficulty = 0
         running = True
         self.loop.create_task(self.another_loop())
-        with open("sounds/Catchit.beatmap.txt") as f:
+        with open("sounds/Valerie.beatmap.txt") as f:
             beatmap = f.read()
             beatmap = beatmap.split("\n")
             for i in range(len(beatmap)):
                 beatmap[i] = float(beatmap[i])
 
-        self.board.speaker.play_mp3("Catchit.mp3")
+        self.board.speaker.play_mp3("Valerie.mp3")
         start_time = time.time()
         while running:
             dtime = time.time() - start_time
-            print("its working")
-            print(beatmap[0])
-            if dtime > beatmap[0]:
-                colour = (random.randint(0, 254), random.randint(0, 254), random.randint(0, 254))
-                # if len(self.active_buttons) < 1:
-                #     while True:
-                #             i = random.randint(0, 3)
-                #             j = random.randint(0, 5)
-                #             button = self.board.buttons[i][j]
-                #             if button not in self.active_buttons:
-                #                 break
-                #     button.activate()
-                #     self.active_buttons.append(button)
-                beatmap.pop(0)
-                self.board.leds.fill(colour)
-            await asyncio.sleep(0.01)
+            if beatmap[0]-dtime > 0.5:
+                await asyncio.sleep(beatmap[0]-dtime-0.5)
+            if len(self.active_buttons) < 1:
+                while True:
+                    i = random.randint(0, len(self.board.buttons)-1)
+                    j = random.randint(0, len(self.board.buttons[0])-1)
+                    button = self.board.buttons[i][j]
+                    if button not in self.active_buttons:
+                         break
+                button.light_up((255,0,0))
+                await asyncio.sleep(0.51)
+                button.activate()
+                self.active_buttons.append(button)
+            beatmap.pop(0)
 
     # this does stuff with inputs. should prob be reworked
     async def another_loop(self):
