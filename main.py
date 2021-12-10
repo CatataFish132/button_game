@@ -58,6 +58,22 @@ class Game:
                 self.active_buttons.append(button)
             beatmap.pop(0)
 
+    async def fast_as_possible(self, amount=1):
+        running = True
+        self.board.colour_all_leds((0,0,0))
+        self.last_button_pressed = None
+        while running:
+            await asyncio.sleep(0.001)
+            if len(self.active_buttons) < amount:
+                while True:
+                    i = random.randint(0, len(self.board.buttons)-1)
+                    j = random.randint(0, len(self.board.buttons[0])-1)
+                    button = self.board.buttons[i][j]
+                    if button not in self.active_buttons and button != self.last_button_pressed:
+                         break
+                button.activate()
+                self.active_buttons.append(button)
+
     # this does stuff with inputs. should prob be reworked
     async def another_loop(self):
         while self.running:
@@ -66,6 +82,7 @@ class Game:
                     if button.active and button.pressed:
                         self.active_buttons.remove(button)
                         button.deactivate()
+                        self.last_button_pressed = button
             await asyncio.sleep(0.0001)
 
 
