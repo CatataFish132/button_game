@@ -101,13 +101,17 @@ class ButtonBoard:
             for i in range(len(self.y_pins)):
                 self.y_pins[i].value = True
                 self.y_pins[i-1].value = False
+                time.sleep(0.001)
                 for j, x_pin in enumerate(self.x_pins):
                     if x_pin.value:
                         self.buttons[i][j].pressed = True
+                        # print(f"{i} {j}")
+                        # self.buttons[i][j].light_up((255,255,255))
                     else:
                         self.buttons[i][j].pressed = False
+                        # self.buttons[i][j].light_up((0,0,0))
 
-    def colour_all_leds(self, colour=(254, 254, 254)):
+    def colour_all_leds(self, colour=(255, 255, 255)):
         for button_row in self.buttons:
             for button in button_row:
                 button.light_up(colour)

@@ -23,7 +23,7 @@ class Game:
     async def start(self):
         # don't listen to the IDE this has to be here
         self.loop = asyncio.get_event_loop()
-        self.loop.run_until_complete(await self.on_the_beat())
+        self.loop.run_until_complete(await self.fast_as_possible(2))
 
     async def game_loop(self, difficulty):
         pass
@@ -62,6 +62,7 @@ class Game:
         running = True
         self.board.colour_all_leds((0,0,0))
         self.last_button_pressed = None
+        self.loop.create_task(self.another_loop())
         while running:
             await asyncio.sleep(0.001)
             if len(self.active_buttons) < amount:
@@ -79,9 +80,13 @@ class Game:
         while self.running:
             for i, list_buttons in enumerate(self.board.buttons):
                 for j, button in enumerate(list_buttons):
+                    if button.pressed:
+                        print(f"BUTTON {i} {j}")
+                        print(self.board.buttons[i][j].pressed)
                     if button.active and button.pressed:
                         self.active_buttons.remove(button)
                         button.deactivate()
+                        print(f"button {i} {j} has been deactivated")
                         self.last_button_pressed = button
             await asyncio.sleep(0.0001)
 
