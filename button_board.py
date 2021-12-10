@@ -14,6 +14,7 @@ import asyncio
 import threading
 import serial
 import configparser
+import RPi.GPIO as GPIO
 
 
 class ButtonBoard:
@@ -31,22 +32,31 @@ class ButtonBoard:
         for i in range(int(self.config["board"]["size_y"])):
             self.buttons.append([])
             for j in range(int(self.config["board"]["size_x"])):
-                self.buttons[i].append(self.Button(self, i*y + j))
+                self.buttons[i].append(self.Button(self, i + j*y + j))
 
         # creating pins
         x_pins = []
-        for i in range(int(self.config["board"]["size_x"])):
-            x_pins.append(getattr(board, f"D{i+1}"))
         y_pins = []
+        self.x_pins = []
+        self.y_pins = []
+        x_size = int(self.config["board"]["size_x"])
         y_size = int(self.config["board"]["size_y"])
-        for i in range(y_size):
-            y_pins.append(getattr(board, f"D{i+y_size+1}"))
+        usable_pins = [4,17,18,27,18,22,23,24,25,5,6,12,13,19,16,26,20,21]
+        usable_pins.sort()
+        for i in usable_pins[:x_size]:
+            x_pins.append(getattr(board, f"D{i}"))
+            GPIO.setup(i, GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
+        for i in usable_pins[x_size:y_size+x_size]:
+            y_pins.append(getattr(board, f"D{i}"))
         for x_pin in x_pins:
             self.x_pins.append(digitalio.DigitalInOut(x_pin))
-            self.x_pins[-1].direction = digitalio.Direction.OUTPUT
+            self.x_pins[-1].direction = digitalio.Direction.INPUT
+            self.x_pins[-1].Pull = digitalio.Pull.DOWN
         for y_pin in y_pins:
             self.y_pins.append(digitalio.DigitalInOut(y_pin))
-            self.y_pins[-1].direction = digitalio.Direction.INPUT
+            self.y_pins[-1].direction = digitalio.Direction.OUTPUT
+        for i in usable_pins[:x_size]:
+            GPIO.setup(i, GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
         t1 = threading.Thread(target=self.thread_loop, args=(), daemon=True)
         t1.start()
 
@@ -61,7 +71,6 @@ class ButtonBoard:
         def light_up(self, color=(255, 255, 255)):
             r, g, b = color
             s = f"{self.led_pos}:{r}:{g}:{b}\n".encode()
-            print(s)
             self.button_board.serial.write(s)
 
         # Activating the button by turning it to a green colour
@@ -89,13 +98,21 @@ class ButtonBoard:
     # TODO: add ability to detect button presses
     def thread_loop(self):
         while self.running:
-            for i, y_pin in enumerate(self.y_pins):
-                y_pin.value = True
+            for i in range(len(self.y_pins)):
+                self.y_pins[i].value = True
+                self.y_pins[i-1].value = False
                 for j, x_pin in enumerate(self.x_pins):
                     if x_pin.value:
+                        if not self.buttons[i][j].pressed:
+                            self.buttons[i][j].light_up()
                         self.buttons[i][j].pressed = True
+                        print(f"button {i} {j} pressed")
+                        self.buttons[i][j].light_up()
                     else:
+                        if self.buttons[i][j].pressed:
+                            self.buttons[i][j].light_up((0,0,0))
                         self.buttons[i][j].pressed = False
+                        self.buttons[i][j].light_up((0,0,0))
 
     def colour_all_leds(self, colour=(254, 254, 254)):
         for button_row in self.buttons:
