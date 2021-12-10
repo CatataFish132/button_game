@@ -1,18 +1,18 @@
 #include <Arduino.h>
 #include <Adafruit_NeoPixel.h>
-#define PIN 13
-#define NUMPIXELS 1
+#define PIN 9
+#define NUMPIXELS 12
 const byte numChars = 16;
 char receivedChars[numChars];
 int incomingByte;
 static byte ndx = 0;
-Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUMPIXELS, PIN, NEO_RGB + NEO_KHZ800);
+Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUMPIXELS, PIN, NEO_RGB + NEO_KHZ400);
 void decoder(char* received);
 void light_up_led(int led, int red, int green, int blue);
 void setup() {
   Serial.begin(115200);
   strip.begin();
-  strip.setPixelColor(0,strip.Color(0,255,100));
+  strip.fill(strip.Color(0, 0, 0));
   strip.show();
 }
 
