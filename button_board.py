@@ -100,7 +100,7 @@ class ButtonBoard:
         def play_wav(self, filename):
             f = lambda sound: play(sound)
             sound = AudioSegment.from_wav('sounds/' + filename)
-            t = threading.Trhead(target=f, args=(sound,))
+            t = threading.Thread(target=f, args=(sound,))
             t.start()
 
     # loop for detecting button presses.
