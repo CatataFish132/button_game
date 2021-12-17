@@ -66,7 +66,7 @@ class ButtonBoard:
             self.led_pos = led_pos
             self.active = False
             self.pressed = False
-            self.activated_time = None
+            self.activated_time = 0
 
         # Lights up the button to the desired RGB colour
         def light_up(self, color=(255, 255, 255)):
@@ -75,8 +75,8 @@ class ButtonBoard:
             self.button_board.serial.write(s)
 
         # Activating the button by turning it to a green colour
-        def activate(self):
-            self.light_up((0, 255, 0))
+        def activate(self, colour=(0, 255, 0)):
+            self.light_up(colour)
             self.active = True
             self.activated_time = time.time()
 
