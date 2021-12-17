@@ -107,11 +107,14 @@ class Game:
 
     async def fast_as_possible(self, *args, **kwargs):
         running = True
+        start_time = time.time()
         self.reset_board()
         self.loop.create_task(self.another_loop())
         amount = args[0]
         while running:
             await asyncio.sleep(0.001)
+            if time.time() - start_time > 60:
+                running = False
             if len(self.active_buttons) < amount:
                 while True:
                     i = random.randint(0, len(self.board.buttons)-1)
@@ -124,10 +127,13 @@ class Game:
 
     async def multiplayer(self, *args, **kwargs):
         running = True
+        start_time = time.time()
         self.reset_board()
         detection_loop = self.loop.create_task(self.two_player_loop())
         while running:
             await asyncio.sleep(0.001)
+            if time.time() - start_time > 60:
+                running = False
             for k, player in enumerate(self.players):
                 if len(player["active_buttons"]) < 1:
                     while True:
@@ -144,6 +150,23 @@ class Game:
                     if k == 1:
                         button.activate()
                     player["active_buttons"].append(button)
+
+        detection_loop.cancel()
+        # print score
+        player_1_total = 0
+        player_2_total = 0
+        for reaction_time in self.players[0]["reaction_time_list"]:
+            player_1_total += reaction_time
+        for reaction_time in self.players[1]["reaction_time_list"]:
+            player_2_total += reaction_time
+        
+        print("player 1: ",)
+        print("average reaction time: ", player_1_total/len(self.players[0]["reaction_time_list"]))
+        print("score: ", self.players[0]["score"])
+        print("player 2: ",)
+        print("average reaction time: ", player_2_total/len(self.players[1]["reaction_time_list"]))
+        print("score: ", self.players[1]["score"])
+
 
 
     # this does stuff with inputs. should prob be reworked
