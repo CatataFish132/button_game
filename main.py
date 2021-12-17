@@ -109,7 +109,7 @@ class Game:
         running = True
         start_time = time.time()
         self.reset_board()
-        self.loop.create_task(self.another_loop())
+        detection_loop = self.loop.create_task(self.another_loop())
         amount = args[0]
         while running:
             await asyncio.sleep(0.001)
@@ -124,6 +124,7 @@ class Game:
                          break
                 button.activate()
                 self.active_buttons.append(button)
+        detection_loop.cancel()
 
     async def multiplayer(self, *args, **kwargs):
         running = True
