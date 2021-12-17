@@ -33,25 +33,38 @@ class Game:
     async def game_loop(self, difficulty):
         pass
 
+    def deactivate_all_buttons(self):
+        for button_row in self.board.buttons:
+            for button in button_row:
+                button.deactivate()
+    
+    def reset_board(self):
+        self.deactivate_all_buttons()
+        self.board.colour_all_leds((0,0,0))
+
+    # a menu that executes the function in the dictionary if the tuple in the key is pressed
     async def menu(self):
-        self.board.buttons[0][0].activate()
-        self.board.buttons[0][2].activate()
+        menu_dict = {(0,0): (self.fast_as_possible, 2), (0,2): (self.on_the_beat, None)}
         while True:
-            if self.board.buttons[0][0].pressed:
-                self.board.buttons[0][0].deactivate()
-                self.board.buttons[0][2].deactivate()
-                await self.fast_as_possible(2)
-            elif self.board.buttons[0][2].pressed:
-                self.board.buttons[0][0].deactivate()
-                self.board.buttons[0][2].deactivate()
-                await self.on_the_beat()
+            self.reset_board()
+            for i, j in menu_dict.keys():
+                self.board.buttons[i][j].activate()
+            while True:
+                for key, value in menu_dict.items():
+                    i, j = key
+                    if self.board.buttons[i][j].pressed:
+                        self.reset_board()
+                        func, argument = value
+                        await func(argument)
+                        break
 
 
-    async def on_the_beat(self):
+
+    async def on_the_beat(self, *args, **kwargs):
         self.board.colour_all_leds((0,0,0))
         difficulty = 0
         running = True
-        self.loop.create_task(self.another_loop())
+        button_detection = self.loop.create_task(self.another_loop())
         with open("sounds/Valerie.beatmap.txt") as f:
             beatmap = f.read()
             beatmap = beatmap.split("\n")
@@ -76,12 +89,16 @@ class Game:
                 button.activate()
                 self.active_buttons.append(button)
             beatmap.pop(0)
+            if len(beatmap) == 0:
+                break
+        button_detection.cancel()
 
-    async def fast_as_possible(self, amount=1):
+    async def fast_as_possible(self, *args, **kwargs):
         running = True
         self.board.colour_all_leds((0,0,0))
         self.last_button_pressed = None
         self.loop.create_task(self.another_loop())
+        amount = args[0]
         while running:
             await asyncio.sleep(0.001)
             if len(self.active_buttons) < amount:

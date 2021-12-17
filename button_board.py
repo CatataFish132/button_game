@@ -95,7 +95,6 @@ class ButtonBoard:
             t.start()
 
     # loop for detecting button presses.
-    # TODO: add ability to detect button presses
     def thread_loop(self):
         while self.running:
             for i in range(len(self.y_pins)):
@@ -105,11 +104,8 @@ class ButtonBoard:
                 for j, x_pin in enumerate(self.x_pins):
                     if x_pin.value:
                         self.buttons[i][j].pressed = True
-                        # print(f"{i} {j}")
-                        # self.buttons[i][j].light_up((255,255,255))
                     else:
                         self.buttons[i][j].pressed = False
-                        # self.buttons[i][j].light_up((0,0,0))
 
     def colour_all_leds(self, colour=(255, 255, 255)):
         for button_row in self.buttons:
