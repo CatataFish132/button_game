@@ -13,6 +13,8 @@ class Game:
         self.config.read("config.ini")
         self.running = True
         self.active_buttons = []
+        self.reaction_time_list = []
+        self.score = 0
         if self.config["Game"]["Emulator_mode"] == "True":
             f = lambda: asyncio.run(self.start())
             t1 = threading.Thread(target=f, daemon=True)
@@ -92,6 +94,11 @@ class Game:
             if len(beatmap) == 0:
                 break
         button_detection.cancel()
+        total_reaction = 0
+        for reaction_time in self.reaction_time_list:
+            total_reaction += reaction_time
+        print("average reaction time: ", total_reaction/len(self.reaction_time_list))
+        print("score: ", self.score)
 
     async def fast_as_possible(self, *args, **kwargs):
         running = True
@@ -113,12 +120,16 @@ class Game:
 
     # this does stuff with inputs. should prob be reworked
     async def another_loop(self):
+        self.reaction_time_list = []
+        self.score = 0
         while self.running:
             for i, list_buttons in enumerate(self.board.buttons):
                 for j, button in enumerate(list_buttons):
                     if button.active and button.pressed:
                         self.active_buttons.remove(button)
-                        button.deactivate()
+                        reaction_time = button.deactivate()
+                        self.reaction_time_list.append(reaction_time)
+                        self.score += (1/reaction_time)
                         self.last_button_pressed = button
             await asyncio.sleep(0.0001)
 

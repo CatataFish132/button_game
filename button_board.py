@@ -66,6 +66,7 @@ class ButtonBoard:
             self.led_pos = led_pos
             self.active = False
             self.pressed = False
+            self.activated_time = None
 
         # Lights up the button to the desired RGB colour
         def light_up(self, color=(255, 255, 255)):
@@ -77,11 +78,13 @@ class ButtonBoard:
         def activate(self):
             self.light_up((0, 255, 0))
             self.active = True
+            self.activated_time = time.time()
 
         # Deactivates the button by turning the led off
         def deactivate(self):
             self.light_up((0, 0, 0))
             self.active = False
+            return time.time() - self.activated_time
 
     class Speakers:
         def __init__(self):
