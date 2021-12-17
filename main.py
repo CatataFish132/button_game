@@ -177,6 +177,7 @@ class Game:
             for i, list_buttons in enumerate(self.board.buttons):
                 for j, button in enumerate(list_buttons):
                     if button.active and button.pressed:
+                        self.board.speaker.play_wav("good.wav")
                         self.active_buttons.remove(button)
                         reaction_time = button.deactivate()
                         self.reaction_time_list.append(reaction_time)
