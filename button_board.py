@@ -67,6 +67,7 @@ class ButtonBoard:
             self.active = False
             self.pressed = False
             self.activated_time = 0
+            self.detected = False
 
         # Lights up the button to the desired RGB colour
         def light_up(self, color=(255, 255, 255)):
