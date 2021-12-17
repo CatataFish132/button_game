@@ -135,7 +135,7 @@ class Game:
                         if k == 0:
                             j = random.randint(0, len(self.board.buttons[0])/2-1)
                         if k == 1:
-                            j = random.randint(len(self.board.buttons[0])/2, len(self.board.buttons[0])-1)
+                            j = random.randint(len(self.board.buttons[0])/2, len(self.board.buttons))
                         button = self.board.buttons[i][j]
                         if button not in self.active_buttons and button != self.last_button_pressed:
                             break
