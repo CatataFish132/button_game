@@ -10,3 +10,5 @@ robot.py was used for testing.
 all the files with emu can be ignored as its only used when developing.
 
 sample_config.ini is a sample config file.
+
+analyse.py is for analysing the file robot.py creates
