@@ -178,16 +178,20 @@ class Game:
             for i, list_buttons in enumerate(self.board.buttons):
                 for j, button in enumerate(list_buttons):
                     if button.active and button.pressed:
-                        self.board.speaker.play_wav("good.wav")
+                        time1 = time.time()
+                        self.board.speaker.play_good()
+                        print(time1-time.time())
                         button.detected = True
                         self.active_buttons.remove(button)
                         reaction_time = button.deactivate()
                         self.reaction_time_list.append(reaction_time)
                         self.score += (1/reaction_time)
                         self.last_button_pressed = button
-                    elif not button.active and button.pressed:
+                    elif not button.active and button.pressed and not button.detected:
                         button.detected = True
-                        self.board.speaker.play_wav("bad.wav")
+                        time1 = time.time()
+                        self.board.speaker.play_bad()
+                        print(time1 - time.time())
                     elif not button.pressed:
                         button.detected = False
             await asyncio.sleep(0.0001)

@@ -30,7 +30,7 @@ class Game:
                 button.deactivate()
         self.last_button_pressed = None
         self.loop = asyncio.get_event_loop()
-        self.loop.run_until_complete(await self.robot())
+        self.loop.run_until_complete(await self.another_loop())
 
     def deactivate_all_buttons(self):
         for button_row in self.board.buttons:
@@ -49,15 +49,20 @@ class Game:
         detection_loop = self.loop.create_task(self.another_loop())
         while running:
             await asyncio.sleep(0.001)
-            if len(self.active_buttons == 0):
-                if self.next_j < 4:
+            if len(self.active_buttons) == 0:
+                print(self.next_i, self.next_j)
+                if self.next_j < 3:
                     self.next_j = self.next_j + 1
                 else:
                     self.next_j = 0
-                    if self.next_i < 3:
+                    print("test")
+                    if self.next_i < 2:
+                        print(self.next_i)
+                        print("doing it")
                         self.next_i = self.next_i+1
                     else:
                         self.next_i = 0
+                    print(self.next_i, self.next_j)
                     self.board.buttons[self.next_i][self.next_j].activate()
                     self.active_buttons.append(self.board.buttons[self.next_i][self.next_j])
         detection_loop.cancel()
@@ -69,29 +74,16 @@ class Game:
             wrong_file = open("wrong_button.txt", "a")
             for i, list_buttons in enumerate(self.board.buttons):
                 for j, button in enumerate(list_buttons):
-                    if button.active and button.pressed:
+                    # if button.active and button.pressed:
+                    #     button.detected = True
+                    #     self.active_buttons.remove(button)
+                    #     button.deactivate()
+                    #     log_file.write(",".join((str(i), str(j)))+"\n")
+                    #     print(i, j)
+                    if button.pressed and not button.detected:
                         button.detected = True
-                        self.active_buttons.remove(button)
-                        button.deactivate()
-                        log_file.write(",".join(str(i), str(j))+"\n")
-                        print(i, j)
-                    elif not button.active and button.pressed and not button.detected:
-                        button.detected = True
-                        log_file.write(",".join(str(i), str(j))+"\n")
-                        wrong_file.write(",".join(str(i), str(j))+"\n")
-                        self.active_buttons.pop(0).deactivate()
-                        if j < 4:
-                            next_j = j + 1
-                            next_i = i
-                        else:
-                            next_j = 0
-                            if i < 3:
-                                next_i = i+1
-                            else:
-                                next_i = 0
-                        self.board.buttons[next_i][next_j].activate()
-                        self.active_buttons.append(self.board.buttons[next_i][next_j])
-                        print("error detected")
+                        log_file.write(",".join((str(i), str(j)))+"\n")
+                        print("press detected: ", i, j)
                     elif not button.pressed:
                         button.detected = False
             await asyncio.sleep(0.0001)

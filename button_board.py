@@ -29,10 +29,20 @@ class ButtonBoard:
         self.buttons = []
         x = int(self.config["board"]["size_x"])-1
         y = int(self.config["board"]["size_y"])-1
+        y_b1 = int(self.config["board"]["size_y"])/2 - 1
+
+
+        # TODO fix this shiiiit
         for i in range(int(self.config["board"]["size_y"])):
             self.buttons.append([])
             for j in range(int(self.config["board"]["size_x"])):
-                self.buttons[i].append(self.Button(self, i + j*y + j))
+                if i < 3:
+                    self.buttons[i].append(self.Button(self, i + j*y_b1 + j))
+                else:
+                    temp_i = i-y1_b1-1
+                    temp_i = temp_i - 2
+                    temp_i = -1*temp_i
+                    self.buttons[i].append(self.Button(self, 23-temp_i-j*y_b1 - j))
 
         # creating pins
         x_pins = []
@@ -41,13 +51,15 @@ class ButtonBoard:
         self.y_pins = []
         x_size = int(self.config["board"]["size_x"])
         y_size = int(self.config["board"]["size_y"])
-        usable_pins = [4,17,18,27,18,22,23,24,25,5,6,12,13,19,16,26,20,21]
+        usable_pins = [4,18,27,22,23,24,25,5,6,12,19,26,20,21]
         usable_pins.sort()
         for i in usable_pins[:x_size]:
             x_pins.append(getattr(board, f"D{i}"))
             GPIO.setup(i, GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
+            print("xsize: ",i)
         for i in usable_pins[x_size:y_size+x_size]:
             y_pins.append(getattr(board, f"D{i}"))
+            print("ysize: ",i)
         for x_pin in x_pins:
             self.x_pins.append(digitalio.DigitalInOut(x_pin))
             self.x_pins[-1].direction = digitalio.Direction.INPUT
@@ -89,7 +101,8 @@ class ButtonBoard:
 
     class Speakers:
         def __init__(self):
-            pass
+            self.bad = AudioSegment.from_wav('sounds/bad.wav')
+            self.good= AudioSegment.from_wav('sounds/good.wav')
 
         # Play an mp3 file that is in the sounds folder
         def play_mp3(self, filename):
@@ -103,6 +116,18 @@ class ButtonBoard:
             sound = AudioSegment.from_wav('sounds/' + filename)
             t = threading.Thread(target=f, args=(sound,))
             t.start()
+    
+        def play_sound(self, sound):
+            f = lambda sound: play(sound)
+            t = threading.Thread(target=f, args=(sound,))
+            t.start()
+        
+        def play_good(self):
+            self.play_sound(self.good)
+
+        def play_bad(self):
+            self.play_sound(self.bad)
+
 
     # loop for detecting button presses.
     def thread_loop(self):
@@ -110,7 +135,9 @@ class ButtonBoard:
             for i in range(len(self.y_pins)):
                 self.y_pins[i].value = True
                 self.y_pins[i-1].value = False
-                time.sleep(0.001)
+                #time.sleep(0.001)
+                #TODO
+                time.sleep(0.01)
                 for j, x_pin in enumerate(self.x_pins):
                     if x_pin.value:
                         self.buttons[i][j].pressed = True
