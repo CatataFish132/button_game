@@ -39,7 +39,7 @@ class ButtonBoard:
                 if i < 3:
                     self.buttons[i].append(self.Button(self, i + j*y_b1 + j))
                 else:
-                    temp_i = i-y1_b1-1
+                    temp_i = i-y_b1-1
                     temp_i = temp_i - 2
                     temp_i = -1*temp_i
                     self.buttons[i].append(self.Button(self, 23-temp_i-j*y_b1 - j))
@@ -54,10 +54,14 @@ class ButtonBoard:
         usable_pins = [4,18,27,22,23,24,25,5,6,12,19,26,20,21]
         usable_pins.sort()
         for i in usable_pins[:x_size]:
+            if i == 6:
+                i = 26
             x_pins.append(getattr(board, f"D{i}"))
             GPIO.setup(i, GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
             print("xsize: ",i)
         for i in usable_pins[x_size:y_size+x_size]:
+            if i == 21:
+                i = 24
             y_pins.append(getattr(board, f"D{i}"))
             print("ysize: ",i)
         for x_pin in x_pins:
@@ -133,13 +137,19 @@ class ButtonBoard:
     def thread_loop(self):
         while self.running:
             for i in range(len(self.y_pins)):
+                # test
                 self.y_pins[i].value = True
                 self.y_pins[i-1].value = False
-                #time.sleep(0.001)
+                # for i in range(len(self.y_pins)):
+                #    self.y_pins[i].value = True
+                time.sleep(0.001)
                 #TODO
-                time.sleep(0.01)
+                #time.sleep(0.01)
+                #time.sleep(0.1)
                 for j, x_pin in enumerate(self.x_pins):
                     if x_pin.value:
+                        if j == 2:
+                            print(f"test [{i}] [{j}] ")
                         self.buttons[i][j].pressed = True
                     else:
                         self.buttons[i][j].pressed = False

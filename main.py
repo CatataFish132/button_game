@@ -4,7 +4,7 @@ import threading
 import time
 import random
 import configparser
-
+from gtts import gTTS
 
 class Game:
     def __init__(self):
@@ -99,6 +99,7 @@ class Game:
             if len(beatmap) == 0:
                 break
         button_detection.cancel()
+        self.active_buttons = []
         total_reaction = 0
         for reaction_time in self.reaction_time_list:
             total_reaction += reaction_time
@@ -113,7 +114,7 @@ class Game:
         amount = args[0]
         while running:
             await asyncio.sleep(0.001)
-            if time.time() - start_time > 60:
+            if time.time() - start_time > 20:
                 running = False
             if len(self.active_buttons) < amount:
                 while True:
@@ -125,6 +126,13 @@ class Game:
                 button.activate()
                 self.active_buttons.append(button)
         detection_loop.cancel()
+        self.board.colour_all_leds((255,255,255))
+        s = f"your score is {self.score}"
+        tts = gTTS(s, lang='en')
+        tts.save("sounds/score.mp3")
+        self.board.speaker.play_mp3("score.mp3")
+
+        self.active_buttons = []
 
     async def multiplayer(self, *args, **kwargs):
         running = True
@@ -133,16 +141,16 @@ class Game:
         detection_loop = self.loop.create_task(self.two_player_loop())
         while running:
             await asyncio.sleep(0.001)
-            if time.time() - start_time > 60:
+            if time.time() - start_time > 20:
                 running = False
             for k, player in enumerate(self.players):
                 if len(player["active_buttons"]) < 1:
                     while True:
-                        i = random.randint(0, len(self.board.buttons)-1)
+                        j = random.randint(0, len(self.board.buttons[0])-1)
                         if k == 0:
-                            j = random.randint(0, len(self.board.buttons[0])/2-1)
+                            i = random.randint(0, len(self.board.buttons)/2-1)
                         if k == 1:
-                            j = random.randint(len(self.board.buttons[0])/2, len(self.board.buttons))
+                            i = random.randint(len(self.board.buttons)/2, len(self.board.buttons)-1)
                         button = self.board.buttons[i][j]
                         if button not in self.active_buttons and button != self.last_button_pressed:
                             break
@@ -161,14 +169,21 @@ class Game:
         for reaction_time in self.players[1]["reaction_time_list"]:
             player_2_total += reaction_time
         
-        print("player 1: ",)
-        print("average reaction time: ", player_1_total/len(self.players[0]["reaction_time_list"]))
-        print("score: ", self.players[0]["score"])
-        print("player 2: ",)
-        print("average reaction time: ", player_2_total/len(self.players[1]["reaction_time_list"]))
-        print("score: ", self.players[1]["score"])
+        if self.players[0]["score"] > self.players[1]["score"]:
+            self.board.colour_all_leds((0,0,255))
+        elif self.players[1]["score"] > self.players[0]["score"]:
+            self.board.colour_all_leds((0,255,0))   
+        else:
+            self.board.colour_all_leds((255,255,255))
 
+        s =f"the scores are green {self.players[1]['score']}. blue {self.players[0]['score']}"
+        tts = gTTS(s, lang='en')
+        tts.save("sounds/score.mp3")
+        self.board.speaker.play_mp3("score.mp3")
 
+        time.sleep(3)
+        for player in self.players:
+            player["active_buttons"] = []
 
     # this does stuff with inputs. should prob be reworked
     async def another_loop(self):
@@ -185,7 +200,8 @@ class Game:
                         self.active_buttons.remove(button)
                         reaction_time = button.deactivate()
                         self.reaction_time_list.append(reaction_time)
-                        self.score += (1/reaction_time)
+                        #self.score += (1/reaction_time)
+                        self.score += 1
                         self.last_button_pressed = button
                     elif not button.active and button.pressed and not button.detected:
                         button.detected = True
@@ -204,12 +220,13 @@ class Game:
             for i, list_buttons in enumerate(self.board.buttons):
                 for j, button in enumerate(list_buttons):
                     if button.active and button.pressed:
+                        self.board.speaker.play_good()
                         for player in self.players:
                             if button in player["active_buttons"]:
                                 player["active_buttons"].remove(button)
                                 reaction_time = button.deactivate()
                                 player["reaction_time_list"].append(reaction_time)
-                                player["score"] += (1/reaction_time)
+                                player["score"] += 1#(1/reaction_time)
                                 self.last_button_pressed = button
             await asyncio.sleep(0.0001)
 
